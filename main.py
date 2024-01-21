@@ -5,11 +5,13 @@ import random
 BOMB = pygame.transform.smoothscale(pygame.image.load("assets/bomb.png"), (250, 250))
 pygame.font.init()
 FONT = pygame.font.SysFont("Lucinda", 52)
+LETTERS = "abcdefghijklmnopqrstuvwxyz"
 
 with open("words_per_syllable.json", "r") as f:
     WORDS_PER_SYLLABLE = json.load(f)
 SYLLABLES = list(WORDS_PER_SYLLABLE.keys())
-
+with open("words.txt", "r") as f:
+    VALID_WORDS = set(map(lambda x: x.strip(), f.readlines()))
 
 class UI:
     def __init__(self):
@@ -17,6 +19,10 @@ class UI:
         self.clock = pygame.time.Clock()
         self.running = True
         self.bomb = Bomb(425, 225)
+        self.difficulty = 2000
+        self.reset_prompt()
+        self.current_word = ""
+        
 
     def run(self):
         while self.running:
@@ -33,12 +39,30 @@ class UI:
             if event.type == pygame.QUIT:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
-                self.bomb.update_letters(get_random_syallable(1000))
+                ch = event.unicode
+                if ch in LETTERS:
+                    self.current_word += event.unicode
+                elif event.key == pygame.K_BACKSPACE:
+                    self.current_word = self.current_word[:-1]
+                elif event.key == pygame.K_RETURN:
+                    if self.prompt.lower() in self.current_word and self.current_word in VALID_WORDS:
+                        self.current_word = ""
+                        self.difficulty -= 10
+                        self.reset_prompt()
+                
+
         
     def draw(self):
         self.screen.fill((64, 64, 64))
         self.bomb.draw(self.screen)
+        current_word = FONT.render(self.current_word, True, (255, 255, 255))
+        current_word_rect = current_word.get_rect(center=(400, 500))
+        self.screen.blit(current_word, current_word_rect)
         pygame.display.flip()
+
+    def reset_prompt(self):
+        self.prompt = get_random_syallable(self.difficulty)
+        self.bomb.update_letters(self.prompt)
 
 
 class Bomb(pygame.sprite.Sprite):
