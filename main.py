@@ -1,8 +1,8 @@
 import pygame
 
-BOMB = pygame.image.load("assets/bomb.png")
+BOMB = pygame.transform.smoothscale(pygame.image.load("assets/bomb.png"), (200, 200))
 pygame.font.init()
-FONT = pygame.font.SysFont("Lucinda", 32)
+FONT = pygame.font.SysFont("Lucinda", 52)
 
 class UI:
     def __init__(self):
@@ -25,6 +25,8 @@ class UI:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+            elif event.type == pygame.KEYDOWN:
+                self.bomb.update_letters(pygame.key.name(event.key))
         
     def draw(self):
         self.screen.fill((64, 64, 64))
@@ -35,33 +37,24 @@ class UI:
 class Bomb(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.image = BOMB
+        self.image = BOMB.copy()
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
-        self.size = 200
-        self.growing = True
 
-        self.letters = ""
+        self.update_letters("")
+
 
     def update(self):
-        self.update_size()
-        self.image = pygame.transform.scale(BOMB, (self.size, self.size))
-        self.rect = self.image.get_rect(center=self.rect.center)
-
-    def update_size(self):
-        if self.growing:
-            self.size += 1
-        else:
-            self.size -= 1
-        if self.size > 300:
-            self.growing = False
-        if self.size < 200:
-            self.growing = True
+        pass
 
     def draw(self, screen):
-        self.image.blit(FONT.render(self.letters, True, (255, 255, 255)), (0, 0))
+        self.image = BOMB.copy()
+        self.image.blit(self.letters, self.letter_rect)
         screen.blit(self.image, self.rect)
 
+    def update_letters(self, letters):
+        self.letters = FONT.render(letters, True, (255, 255, 255))
+        self.letter_rect = self.letters.get_rect(center=(62, 132))
 
 if __name__ == "__main__":
     pygame.init()
