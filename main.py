@@ -22,6 +22,7 @@ class UI:
         self.difficulty = 2000
         self.reset_prompt()
         self.current_word = ""
+        self.used_words = set()
         
 
     def run(self):
@@ -43,19 +44,24 @@ class UI:
                 if ch in LETTERS:
                     self.current_word += event.unicode
                 elif event.key == pygame.K_BACKSPACE:
-                    self.current_word = self.current_word[:-1]
-                elif event.key == pygame.K_RETURN:
-                    if self.prompt.lower() in self.current_word and self.current_word in VALID_WORDS:
+                    if pygame.key.get_mods() & pygame.KMOD_CTRL:
                         self.current_word = ""
-                        self.difficulty -= 10
-                        self.reset_prompt()
-                
+                    else:
+                        self.current_word = self.current_word[:-1]
+                elif event.key == pygame.K_RETURN:
+                    self.attempt_to_submit()
 
+    def attempt_to_submit(self):
+        if self.prompt.lower() in self.current_word and self.current_word not in self.used_words and self.current_word in VALID_WORDS:
+            self.used_words.add(self.current_word)
+            self.current_word = ""
+            self.difficulty -= 10
+            self.reset_prompt()
         
     def draw(self):
         self.screen.fill((64, 64, 64))
         self.bomb.draw(self.screen)
-        current_word = FONT.render(self.current_word, True, (255, 255, 255))
+        current_word = FONT.render(self.current_word.upper(), True, (255, 255, 255))
         current_word_rect = current_word.get_rect(center=(400, 500))
         self.screen.blit(current_word, current_word_rect)
         pygame.display.flip()
