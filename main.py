@@ -2,7 +2,19 @@ import pygame
 import json
 import random
 
-BOMB = pygame.transform.smoothscale(pygame.image.load("assets/bomb.png"), (250, 250))
+
+def load_image(path: str, size: tuple[int, int]) -> pygame.surface.Surface:
+    image = pygame.image.load(path)
+    try:
+        image = pygame.transform.smoothscale(image, size)
+    except ValueError:
+        image = pygame.transform.scale(image, size)
+    return image
+
+
+BOMB = load_image("assets/bomb.png", (250, 250))
+FULL_HEART = load_image("assets/full_heart.png", (100, 100))
+EMPTY_HEART = load_image("assets/empty_heart.png", (100, 100))
 pygame.font.init()
 FONT = pygame.font.SysFont("Lucinda", 52)
 LETTERS = "abcdefghijklmnopqrstuvwxyz"
@@ -23,16 +35,23 @@ class UI:
         self.reset_prompt()
         self.current_word = ""
         self.used_words = set()
+        self.ms_on_current_prompt = 0
+        self.health = 3
         
 
     def run(self):
         while self.running:
-            self.update()
+            dt = self.clock.tick(60)
+            self.update(dt)
             self.handle_events()
             self.draw()
-            self.clock.tick(60)
 
-    def update(self):
+    def update(self, dt):
+        self.ms_on_current_prompt += dt
+        if self.ms_on_current_prompt > 10000:
+            self.health -= 1
+            self.ms_on_current_prompt = 0
+            self.reset_prompt()
         self.bomb.update()
 
     def handle_events(self):
@@ -56,6 +75,7 @@ class UI:
             self.used_words.add(self.current_word)
             self.current_word = ""
             self.difficulty -= 20
+            self.ms_on_current_prompt = 0
             self.reset_prompt()
         
     def draw(self):
@@ -64,6 +84,12 @@ class UI:
         current_word = FONT.render(self.current_word.upper(), True, (255, 255, 255))
         current_word_rect = current_word.get_rect(center=(400, 500))
         self.screen.blit(current_word, current_word_rect)
+        for i in range(3):
+            if i < self.health:
+                self.screen.blit(FULL_HEART, (200 + i * 150, 25))
+            else:
+                self.screen.blit(EMPTY_HEART, (200 + i * 150, 25))
+
         pygame.display.flip()
 
     def reset_prompt(self):
