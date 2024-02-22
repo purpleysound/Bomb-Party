@@ -31,5 +31,5 @@ def make_syllable_json():
 
 
 if __name__ == "__main__":
-    pass
+    make_syllable_json()
     

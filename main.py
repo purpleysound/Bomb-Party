@@ -19,7 +19,7 @@ class UI:
         self.clock = pygame.time.Clock()
         self.running = True
         self.bomb = Bomb(425, 225)
-        self.difficulty = 2000
+        self.difficulty = 4000
         self.reset_prompt()
         self.current_word = ""
         self.used_words = set()
@@ -55,7 +55,7 @@ class UI:
         if self.prompt.lower() in self.current_word and self.current_word not in self.used_words and self.current_word in VALID_WORDS:
             self.used_words.add(self.current_word)
             self.current_word = ""
-            self.difficulty -= 10
+            self.difficulty -= 20
             self.reset_prompt()
         
     def draw(self):
