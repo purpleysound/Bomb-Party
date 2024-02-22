@@ -51,6 +51,7 @@ class UI:
         if self.ms_on_current_prompt > 10000:
             self.health -= 1
             self.ms_on_current_prompt = 0
+            self.current_word = ""
             self.reset_prompt()
         self.bomb.update()
 
