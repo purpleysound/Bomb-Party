@@ -37,8 +37,8 @@ class UI:
         self.used_words = set()
         self.ms_on_current_prompt = 0
         self.health = 3
+        self.game_ongoing = True
         
-
     def run(self):
         while self.running:
             dt = self.clock.tick(60)
@@ -53,12 +53,17 @@ class UI:
             self.ms_on_current_prompt = 0
             self.current_word = ""
             self.reset_prompt()
+            if self.health <= 0:
+                self.game_over()
         self.bomb.update()
 
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+            if not self.game_ongoing:
+                continue
+
             elif event.type == pygame.KEYDOWN:
                 ch = event.unicode
                 if ch in LETTERS:
@@ -97,6 +102,11 @@ class UI:
         self.prompt = get_random_syallable(self.difficulty)
         self.bomb.update_letters(self.prompt)
 
+    def game_over(self):
+        self.game_ongoing = False
+        self.bomb.update_letters("")
+        self.current_word = "GAME OVER  SCORE: " + str(len(self.used_words))
+
 
 class Bomb(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -106,7 +116,6 @@ class Bomb(pygame.sprite.Sprite):
         self.rect.center = (x, y)
 
         self.update_letters("")
-
 
     def update(self):
         pass
