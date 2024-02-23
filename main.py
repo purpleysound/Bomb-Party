@@ -1,16 +1,7 @@
 import pygame
 import json
 import random
-
-
-def load_image(path: str, size: tuple[int, int]) -> pygame.surface.Surface:
-    image = pygame.image.load(path)
-    try:
-        image = pygame.transform.smoothscale(image, size)
-    except ValueError:
-        image = pygame.transform.scale(image, size)
-    return image
-
+from utils import fade_colour, load_image
 
 BOMB = load_image("assets/bomb.png", (250, 250))
 FULL_HEART = load_image("assets/full_heart.png", (100, 100))
@@ -18,6 +9,12 @@ EMPTY_HEART = load_image("assets/empty_heart.png", (100, 100))
 pygame.font.init()
 FONT = pygame.font.SysFont("Lucinda", 52)
 LETTERS = "abcdefghijklmnopqrstuvwxyz"
+
+DEFAULT_BACKGROUND = (64, 64, 64)
+MILD_RED = (128, DEFAULT_BACKGROUND[1], DEFAULT_BACKGROUND[2])
+BRIGHT_RED = (192, DEFAULT_BACKGROUND[1], DEFAULT_BACKGROUND[2])
+MILD_GREEN = (DEFAULT_BACKGROUND[0], 128, DEFAULT_BACKGROUND[2])
+TEXT_COLOUR = (255, 255, 255)
 
 with open("words_per_syllable.json", "r") as f:
     WORDS_PER_SYLLABLE = json.load(f)
@@ -38,6 +35,7 @@ class UI:
         self.ms_on_current_prompt = 0
         self.health = 3
         self.game_ongoing = True
+        self.bg_color = DEFAULT_BACKGROUND
         
     def run(self):
         while self.running:
@@ -48,7 +46,9 @@ class UI:
 
     def update(self, dt):
         self.ms_on_current_prompt += dt
+        self.bg_color = fade_colour(self.bg_color, DEFAULT_BACKGROUND, 3)
         if self.ms_on_current_prompt > 10000:
+            self.bg_color = BRIGHT_RED
             self.health -= 1
             self.ms_on_current_prompt = 0
             self.current_word = ""
@@ -82,12 +82,15 @@ class UI:
             self.current_word = ""
             self.difficulty -= 20
             self.ms_on_current_prompt = 0
+            self.bg_color = MILD_GREEN
             self.reset_prompt()
-        
+        else:
+            self.bg_color = MILD_RED
+
     def draw(self):
-        self.screen.fill((64, 64, 64))
+        self.screen.fill(self.bg_color)
         self.bomb.draw(self.screen)
-        current_word = FONT.render(self.current_word.upper(), True, (255, 255, 255))
+        current_word = FONT.render(self.current_word.upper(), True, (TEXT_COLOUR))
         current_word_rect = current_word.get_rect(center=(400, 500))
         self.screen.blit(current_word, current_word_rect)
         for i in range(3):
@@ -126,7 +129,7 @@ class Bomb(pygame.sprite.Sprite):
         screen.blit(self.image, self.rect)
 
     def update_letters(self, letters):
-        self.letters = FONT.render(letters, True, (255, 255, 255))
+        self.letters = FONT.render(letters, True, (TEXT_COLOUR))
         self.letter_rect = self.letters.get_rect(center=(77, 165))
 
 
