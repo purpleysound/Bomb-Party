@@ -45,8 +45,10 @@ class UI:
             self.draw()
 
     def update(self, dt):
-        self.ms_on_current_prompt += dt
         self.bg_color = fade_colour(self.bg_color, DEFAULT_BACKGROUND, 3)
+        if not self.game_ongoing:
+            return
+        self.ms_on_current_prompt += dt
         if self.ms_on_current_prompt > 10000:
             self.bg_color = BRIGHT_RED
             self.health -= 1
