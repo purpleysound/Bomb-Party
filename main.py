@@ -154,13 +154,14 @@ class EnterNameScene(Scene):
     def __init__(self, return_values={}):
         super().__init__(return_values)
         self.bg_color = BRIGHT_RED
+        self.ms_since_end = 0
+
         self.you_scored = FONT.render("You scored:", True, (TEXT_COLOUR))
         self.you_scored_rect = self.you_scored.get_rect(center=(400, 100))
         self.words = FONT.render(f"Words: {return_values['words']}", True, (TEXT_COLOUR))
         self.words_rect = self.words.get_rect(center=(200, 200))
         self.letters = FONT.render(f"Letters: {return_values['letters']}", True, (TEXT_COLOUR))
         self.letters_rect = self.letters.get_rect(center=(600, 200))
-
         self.instructions = FONT.render("Enter your name", True, (TEXT_COLOUR))
         self.instructions_rect = self.instructions.get_rect(center=(400, 300))
         self.name = ""
@@ -174,7 +175,7 @@ class EnterNameScene(Scene):
                 return
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
-                    if self.name:
+                    if self.name and self.ms_since_end > 3000:
                         self.submit()
                 elif event.key == pygame.K_BACKSPACE:
                     if pygame.key.get_mods() & pygame.KMOD_CTRL:
@@ -182,7 +183,11 @@ class EnterNameScene(Scene):
                     else:
                         self.name = self.name[:-1]
                 else:
-                    self.name += event.unicode
+                    self.name += event.unicode.upper()
+
+    def update(self, dt):
+        self.ms_since_end += dt
+        super().update(dt)
         
     def draw(self, screen):
         super().draw(screen)
@@ -215,7 +220,7 @@ class LeaderboardScene(Scene):
         self.letters = FONT.render("Letters", True, (TEXT_COLOUR))
         self.letters_rect = self.letters.get_rect(center=(550, 200))
         self.high_score = return_values["high_score"]
-        self.username = return_values["name"]
+        self.username = return_values["name"].upper()
         if self.high_score:
             self.bg_color = BLUE
 
