@@ -24,3 +24,7 @@ def load_image(path: str, size: tuple[int, int]) -> pygame.surface.Surface:
     except ValueError:
         image = pygame.transform.scale(image, size)
     return image
+
+
+def sort_dictionary(dictionary, key=lambda x: x, reverse=False):
+    return {k: v for k, v in sorted(dictionary.items(), key=key, reverse=reverse)}

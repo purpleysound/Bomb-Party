@@ -1,4 +1,5 @@
 import json
+from utils import sort_dictionary
 LETTERS = "abcdefghijklmnopqrstuvwxyz"
 
 with open("words.txt", "r") as f:
@@ -24,7 +25,7 @@ def make_syllable_json():
     for letters in get_letter_pairs():
         num_answers[letters] = len(list(get_words(letters)))
 
-    num_answers = {k: v for k, v in sorted(num_answers.items(), key=lambda item: item[1], reverse=True)}
+    num_answers = sort_dictionary(num_answers, key=lambda x: x[1], reverse=True)
 
     with open("words_per_syllable.json", "w") as f:
         json.dump(num_answers, f, indent=4)
