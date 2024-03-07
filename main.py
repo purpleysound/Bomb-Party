@@ -138,7 +138,7 @@ class PlayingScene(Scene):
             self.bg_color = MILD_RED
 
     def reset_prompt(self):
-        self.prompt = get_random_syallable(self.difficulty)
+        self.prompt = get_random_syallable(max(100, self.difficulty))
         self.bomb.update_letters(self.prompt)
 
     def game_over(self):
