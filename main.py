@@ -24,6 +24,7 @@ with open("words_per_syllable.json", "r") as f:
 SYLLABLES = list(WORDS_PER_SYLLABLE.keys())
 with open("words.txt", "r") as f:
     VALID_WORDS = set(map(lambda x: x.strip(), f.readlines()))
+MAX_TIME_ON_PROMPT = 1000
 
 
 class Scene:
@@ -83,7 +84,7 @@ class PlayingScene(Scene):
     def update(self, dt):
         super().update(dt)
         self.ms_on_current_prompt += dt
-        if self.ms_on_current_prompt > 10000:
+        if self.ms_on_current_prompt > MAX_TIME_ON_PROMPT:
             self.bg_color = BRIGHT_RED
             self.health -= 1
             self.ms_on_current_prompt = 0
@@ -214,11 +215,13 @@ class LeaderboardScene(Scene):
         super().__init__(return_values)
         self.leaderboard = leaderboard_handler.open_leaderboard()
         self.title = FONT.render("Leaderboard", True, (TEXT_COLOUR))
-        self.title_rect = self.title.get_rect(center=(400, 100))
+        self.title_rect = self.title.get_rect(center=(400, 50))
         self.words = FONT.render("Words", True, (TEXT_COLOUR))
-        self.words_rect = self.words.get_rect(center=(250, 200))
+        self.words_rect = self.words.get_rect(center=(250, 150))
         self.letters = FONT.render("Letters", True, (TEXT_COLOUR))
-        self.letters_rect = self.letters.get_rect(center=(550, 200))
+        self.letters_rect = self.letters.get_rect(center=(550, 150))
+        self.retry = FONT.render("Press Enter to retry", True, (TEXT_COLOUR))
+        self.retry_rect = self.retry.get_rect(center=(400, 550))
         self.high_score = return_values["high_score"]
         self.username = return_values["name"].upper()
         if self.high_score:
@@ -229,6 +232,10 @@ class LeaderboardScene(Scene):
             if event.type == pygame.QUIT:
                 self.running = False
                 return
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.call_scene_change = True
+                    self.return_values = {}
 
     def draw(self, screen):
         super().draw(screen)
@@ -243,13 +250,15 @@ class LeaderboardScene(Scene):
                 else:
                     colour = TEXT_COLOUR
                 row_text = FONT.render(f"{name}: {score}", True, (colour))
-                row_rect = row_text.get_rect(center=(250 + 300*i, 250 + j * 50))
+                row_rect = row_text.get_rect(center=(250 + 300*i, 200 + j * 50))
                 screen.blit(row_text, row_rect)
 
         if self.high_score:
             high_score_text = FONT.render("New High Score!", True, (TEXT_COLOUR))
-            high_score_rect = high_score_text.get_rect(center=(400, 500))
+            high_score_rect = high_score_text.get_rect(center=(400, 450))
             screen.blit(high_score_text, high_score_rect)
+
+        screen.blit(self.retry, self.retry_rect)
         pygame.display.flip()
 
 
@@ -279,6 +288,7 @@ class UI:
         if self.scene.call_scene_change:
             return_values = self.scene.return_values
             self.scene_number += 1
+            self.scene_number %= len(SCENES)
             self.scene = SCENES[self.scene_number](return_values)
         
 
