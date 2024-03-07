@@ -80,6 +80,7 @@ class PlayingScene(Scene):
         self.used_words = set()
         self.ms_on_current_prompt = 0
         self.health = 3
+        self.failed_prompts = []
 
     def update(self, dt):
         super().update(dt)
@@ -89,6 +90,7 @@ class PlayingScene(Scene):
             self.health -= 1
             self.ms_on_current_prompt = 0
             self.current_word = ""
+            self.failed_prompts.append(self.prompt)
             self.reset_prompt()
             if self.health <= 0:
                 self.game_over()
@@ -147,7 +149,7 @@ class PlayingScene(Scene):
         for word in self.used_words:
             words += 1
             letters += len(word)
-        self.return_values = {"words": words, "letters": letters}
+        self.return_values = {"words": words, "letters": letters, "failed": self.failed_prompts}
         self.call_scene_change = True
 
 
@@ -158,16 +160,20 @@ class EnterNameScene(Scene):
         self.ms_since_end = 0
 
         self.you_scored = FONT.render("You scored:", True, (TEXT_COLOUR))
-        self.you_scored_rect = self.you_scored.get_rect(center=(400, 100))
+        self.you_scored_rect = self.you_scored.get_rect(center=(400, 50))
         self.words = FONT.render(f"Words: {return_values['words']}", True, (TEXT_COLOUR))
-        self.words_rect = self.words.get_rect(center=(200, 200))
+        self.words_rect = self.words.get_rect(center=(200, 150))
         self.letters = FONT.render(f"Letters: {return_values['letters']}", True, (TEXT_COLOUR))
-        self.letters_rect = self.letters.get_rect(center=(600, 200))
+        self.letters_rect = self.letters.get_rect(center=(600, 150))
+        self.failed_text = FONT.render("You failed on:", True, (TEXT_COLOUR))
+        self.failed_text_rect = self.failed_text.get_rect(center=(400, 250))
+        self.failed_words_text = FONT.render(str(return_values["failed"])[1:-1], True, (TEXT_COLOUR))
+        self.failed_words_rect = self.failed_words_text.get_rect(center=(400, 300))
         self.instructions = FONT.render("Enter your name", True, (TEXT_COLOUR))
-        self.instructions_rect = self.instructions.get_rect(center=(400, 300))
+        self.instructions_rect = self.instructions.get_rect(center=(400, 400))
         self.name = ""
         self.name_text = FONT.render(self.name, True, (TEXT_COLOUR))
-        self.name_rect = self.name_text.get_rect(center=(400, 400))
+        self.name_rect = self.name_text.get_rect(center=(400, 500))
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -196,8 +202,10 @@ class EnterNameScene(Scene):
         screen.blit(self.words, self.words_rect)
         screen.blit(self.letters, self.letters_rect)
         screen.blit(self.instructions, self.instructions_rect)
+        screen.blit(self.failed_text, self.failed_text_rect)
+        screen.blit(self.failed_words_text, self.failed_words_rect)
         self.name_text = FONT.render(self.name, True, (TEXT_COLOUR))
-        self.name_rect = self.name_text.get_rect(center=(400, 400))
+        self.name_rect = self.name_text.get_rect(center=(400, 500))
         screen.blit(self.name_text, self.name_rect)
         pygame.display.flip()
     
