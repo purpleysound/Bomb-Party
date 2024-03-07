@@ -62,4 +62,4 @@ def delete_user(name: str):
 
     
 if __name__ == "__main__":
-    delete_user("JACL")
+    print(open_leaderboard())

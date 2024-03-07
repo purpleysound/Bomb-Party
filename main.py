@@ -24,7 +24,7 @@ with open("words_per_syllable.json", "r") as f:
 SYLLABLES = list(WORDS_PER_SYLLABLE.keys())
 with open("words.txt", "r") as f:
     VALID_WORDS = set(map(lambda x: x.strip(), f.readlines()))
-MAX_TIME_ON_PROMPT = 1000
+MAX_TIME_ON_PROMPT = 10000
 
 
 class Scene:
