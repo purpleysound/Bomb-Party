@@ -47,7 +47,19 @@ def update_leaderboard(name: str, words: int, letters: int) -> bool:
         leaderboard["digest"] = get_digest(leaderboard)
         with open("leaderboard.json", "w") as f:
             json.dump(leaderboard, f, indent=4)
-    return updated 
+    return updated
+
+
+def delete_user(name: str):
+    leaderboard: dict[str, dict | str] = open_leaderboard()
+    if name in leaderboard["words"]:
+        del leaderboard["words"][name]
+    if name in leaderboard["letters"]:
+        del leaderboard["letters"][name]
+    leaderboard["digest"] = get_digest(leaderboard)
+    with open("leaderboard.json", "w") as f:
+        json.dump(leaderboard, f, indent=4)
+
     
 if __name__ == "__main__":
-    print(open_leaderboard())
+    delete_user("JACL")
