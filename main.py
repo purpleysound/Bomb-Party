@@ -13,15 +13,19 @@ FONT = pygame.font.SysFont("Lucinda", 52)
 LETTERS = "abcdefghijklmnopqrstuvwxyz"
 
 DEFAULT_BACKGROUND = (64, 64, 64)
+SECONDARY_BACKGROUND = (32, 32, 32)
 MILD_RED = (128, DEFAULT_BACKGROUND[1], DEFAULT_BACKGROUND[2])
 BRIGHT_RED = (255, DEFAULT_BACKGROUND[1], DEFAULT_BACKGROUND[2])
 MILD_GREEN = (DEFAULT_BACKGROUND[0], 128, DEFAULT_BACKGROUND[2])
 BLUE = (DEFAULT_BACKGROUND[0], DEFAULT_BACKGROUND[1], 255)
 TEXT_COLOUR = (255, 255, 255)
 
-with open("words_per_syllable.json", "r") as f:
-    WORDS_PER_SYLLABLE = json.load(f)
-SYLLABLES = list(WORDS_PER_SYLLABLE.keys())
+with open("words_per_2_letters.json", "r") as f:
+    WORDS_PER_2_LETTERS = json.load(f)
+LETTER_PAIRS = list(WORDS_PER_2_LETTERS.keys())
+with open("words_per_3_letters.json", "r") as f:
+    WORDS_PER_3_LETTERS = json.load(f)
+LETTER_TRIPLETS = list(WORDS_PER_3_LETTERS.keys())
 with open("words.txt", "r") as f:
     VALID_WORDS = set(map(lambda x: x.strip(), f.readlines()))
 MAX_TIME_ON_PROMPT = 10000
@@ -51,8 +55,13 @@ class StartScene(Scene):
         self.bomb = Bomb(440, 200, 400)
         self.title = FONT.render("Word Bomb", True, (TEXT_COLOUR))
         self.title_rect = self.title.get_rect(center=(380, 280))
-        self.instructions = FONT.render("Press any key to start", True, (TEXT_COLOUR))
-        self.instructions_rect = self.instructions.get_rect(center=(400, 500))
+        self.instructions = FONT.render("Press enter to start", True, (TEXT_COLOUR))
+        self.instructions_rect = self.instructions.get_rect(center=(400, 425))
+        self.easy = FONT.render("Easy (2 letters)", True, (TEXT_COLOUR))
+        self.easy_rect = self.easy.get_rect(center=(200, 525))
+        self.hard = FONT.render("Hard (3 letters)", True, (TEXT_COLOUR))
+        self.hard_rect = self.hard.get_rect(center=(600, 525))
+        self.difficulty = 2
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -60,13 +69,27 @@ class StartScene(Scene):
                 self.running = False
                 return
             if event.type == pygame.KEYDOWN:
-                self.call_scene_change = True
+                if event.key == pygame.K_RETURN:
+                    self.return_values = {"difficulty": self.difficulty}
+                    self.call_scene_change = True
+                if event.key == pygame.K_RIGHT:
+                    self.difficulty = 3
+                if event.key == pygame.K_LEFT:
+                    self.difficulty = 2
         
     def draw(self, screen):
         super().draw(screen)
         self.bomb.draw(screen)
         screen.blit(self.title, self.title_rect)
         screen.blit(self.instructions, self.instructions_rect)
+        if self.difficulty == 2:
+            pygame.draw.rect(screen, BRIGHT_RED, (50, 475, 300, 100))
+            pygame.draw.rect(screen,SECONDARY_BACKGROUND, (450, 475, 300, 100))
+        else:
+            pygame.draw.rect(screen, SECONDARY_BACKGROUND, (50, 475, 300, 100))
+            pygame.draw.rect(screen, BRIGHT_RED, (450, 475, 300, 100))
+        screen.blit(self.easy, self.easy_rect)
+        screen.blit(self.hard, self.hard_rect)
         pygame.display.flip()
 
 
@@ -74,7 +97,8 @@ class PlayingScene(Scene):
     def __init__(self, return_values={}):
         super().__init__(return_values)
         self.bomb = Bomb(425, 225, 250)
-        self.difficulty = 4000
+        self.letters_per_prompt = return_values["difficulty"]
+        self.difficulty = 6000 // self.letters_per_prompt  # 4000 for 2 letters, 2000 for 3 letters
         self.reset_prompt()
         self.current_word = ""
         self.used_words = set()
@@ -140,7 +164,7 @@ class PlayingScene(Scene):
             self.bg_color = MILD_RED
 
     def reset_prompt(self):
-        self.prompt = get_random_syallable(max(100, self.difficulty))
+        self.prompt = get_random_syallable(max(100, self.difficulty), self.letters_per_prompt)
         self.bomb.update_letters(self.prompt)
 
     def game_over(self):
@@ -149,7 +173,7 @@ class PlayingScene(Scene):
         for word in self.used_words:
             words += 1
             letters += len(word)
-        self.return_values = {"words": words, "letters": letters, "failed": self.failed_prompts}
+        self.return_values = {"words": words, "letters": letters, "failed": self.failed_prompts, "difficulty": self.letters_per_prompt}
         self.call_scene_change = True
 
 
@@ -212,8 +236,9 @@ class EnterNameScene(Scene):
     def submit(self):
         words = self.previous_return_values["words"]
         letters = self.previous_return_values["letters"]
-        self.return_values = {"words": words, "letters": letters, "name": self.name}
-        high_score = leaderboard_handler.update_leaderboard(self.name, words, letters)
+        difficulty = self.previous_return_values["difficulty"]
+        self.return_values = {"words": words, "letters": letters, "difficulty": difficulty, "name": self.name}
+        high_score = leaderboard_handler.update_leaderboard(self.name, words, letters, difficulty)
         self.return_values["high_score"] = high_score
         self.call_scene_change = True
 
@@ -221,7 +246,7 @@ class EnterNameScene(Scene):
 class LeaderboardScene(Scene):
     def __init__(self, return_values={}):
         super().__init__(return_values)
-        self.leaderboard = leaderboard_handler.open_leaderboard()
+        self.leaderboard = leaderboard_handler.get_leaderboard(return_values["difficulty"])
         self.title = FONT.render("Leaderboard", True, (TEXT_COLOUR))
         self.title_rect = self.title.get_rect(center=(400, 50))
         self.words = FONT.render("Words", True, (TEXT_COLOUR))
@@ -322,8 +347,13 @@ class Bomb(pygame.sprite.Sprite):
         self.letter_rect = self.letters.get_rect(center=(77, 165))
 
 
-def get_random_syallable(min_words=0):
-    potential_syllables = list(filter(lambda x: WORDS_PER_SYLLABLE[x] >= min_words, SYLLABLES))
+def get_random_syallable(min_words=0, letters=2):
+    if letters == 2:
+        potential_syllables = list(filter(lambda x: WORDS_PER_2_LETTERS[x] >= min_words, LETTER_PAIRS))
+    elif letters == 3:
+        potential_syllables = list(filter(lambda x: WORDS_PER_3_LETTERS[x] >= min_words, LETTER_TRIPLETS))
+    else:
+        raise ValueError("Invalid number of letters")
     return random.choice(potential_syllables).upper()
 
 
