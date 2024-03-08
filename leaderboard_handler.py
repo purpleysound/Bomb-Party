@@ -1,17 +1,10 @@
 import json
 from utils import sort_dictionary
-import hashlib
 
-def get_digest(leaderboard):
-    return hashlib.sha256(
-        f"{json.dumps(leaderboard["words"])},{json.dumps(leaderboard["letters"])}"
-        .encode()).hexdigest()
-
-EMPTY_HASH = get_digest({"words": {}, "letters": {}})
 
 def create_leaderboard():
     with open("leaderboard.json", "w") as f:
-        json.dump({"words": {}, "letters": {}, "digest": EMPTY_HASH}, f, indent=4)
+        json.dump({"words": {}, "letters": {}}, f, indent=4)
 
 def open_leaderboard():
     try:
@@ -20,12 +13,7 @@ def open_leaderboard():
     except FileNotFoundError:
         create_leaderboard()
         leaderboard = open_leaderboard()
-
-    digest = get_digest(leaderboard)
-    if digest == leaderboard["digest"]:
-        return leaderboard
-    else:
-        raise RuntimeError("Leaderboard digest doesn't match, file has either been tampered with or an error has occured")
+    return leaderboard
     
     
 def update_leaderboard(name: str, words: int, letters: int) -> bool:
@@ -44,7 +32,6 @@ def update_leaderboard(name: str, words: int, letters: int) -> bool:
         leaderboard["letters"] = sort_dictionary(leaderboard["letters"], key=lambda x: x[1], reverse=True)
         updated = True
     if updated:
-        leaderboard["digest"] = get_digest(leaderboard)
         with open("leaderboard.json", "w") as f:
             json.dump(leaderboard, f, indent=4)
     return updated
@@ -56,7 +43,6 @@ def delete_user(name: str):
         del leaderboard["words"][name]
     if name in leaderboard["letters"]:
         del leaderboard["letters"][name]
-    leaderboard["digest"] = get_digest(leaderboard)
     with open("leaderboard.json", "w") as f:
         json.dump(leaderboard, f, indent=4)
 
