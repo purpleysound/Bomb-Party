@@ -348,12 +348,9 @@ class Bomb(pygame.sprite.Sprite):
 
 
 def get_random_syallable(min_words=0, letters=2):
-    if letters == 2:
-        potential_syllables = list(filter(lambda x: WORDS_PER_2_LETTERS[x] >= min_words, LETTER_PAIRS))
-    elif letters == 3:
-        potential_syllables = list(filter(lambda x: WORDS_PER_3_LETTERS[x] >= min_words, LETTER_TRIPLETS))
-    else:
-        raise ValueError("Invalid number of letters")
+    potential_syllables = list(filter(lambda x: WORDS_PER_2_LETTERS[x] >= min_words, LETTER_PAIRS))
+    if letters == 3:
+        potential_syllables += list(filter(lambda x: WORDS_PER_3_LETTERS[x] >= min_words, LETTER_TRIPLETS))
     return random.choice(potential_syllables).upper()
 
 
