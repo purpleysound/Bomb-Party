@@ -99,12 +99,12 @@ class PlayingScene(Scene):
         self.bomb = Bomb(425, 225, 250)
         self.letters_per_prompt = return_values["difficulty"]
         self.difficulty = 6000 // self.letters_per_prompt  # 4000 for 2 letters, 2000 for 3 letters
+        self.failed_prompts = []
         self.reset_prompt()
         self.current_word = ""
         self.used_words = set()
         self.ms_on_current_prompt = 0
         self.health = 3
-        self.failed_prompts = []
 
     def update(self, dt):
         super().update(dt)
@@ -128,8 +128,8 @@ class PlayingScene(Scene):
             
             if event.type == pygame.KEYDOWN:
                 ch = event.unicode
-                if ch in LETTERS:
-                    self.current_word += event.unicode
+                if ch.lower() in LETTERS:
+                    self.current_word += event.unicode.lower()
                 elif event.key == pygame.K_BACKSPACE:
                     if pygame.key.get_mods() & pygame.KMOD_CTRL:
                         self.current_word = ""
@@ -164,7 +164,7 @@ class PlayingScene(Scene):
             self.bg_color = MILD_RED
 
     def reset_prompt(self):
-        self.prompt = get_random_syallable(max(100, self.difficulty), self.letters_per_prompt)
+        self.prompt = get_random_syallable(max(100, self.difficulty), self.letters_per_prompt, self.failed_prompts)
         self.bomb.update_letters(self.prompt)
 
     def game_over(self):
@@ -347,10 +347,11 @@ class Bomb(pygame.sprite.Sprite):
         self.letter_rect = self.letters.get_rect(center=(77, 165))
 
 
-def get_random_syallable(min_words=0, letters=2):
+def get_random_syallable(min_words=0, letters=2, banned_words=list()):
     potential_syllables = list(filter(lambda x: WORDS_PER_2_LETTERS[x] >= min_words, LETTER_PAIRS))
     if letters == 3:
         potential_syllables += list(filter(lambda x: WORDS_PER_3_LETTERS[x] >= min_words, LETTER_TRIPLETS))
+    potential_syllables = list(filter(lambda x: x not in banned_words, potential_syllables))
     return random.choice(potential_syllables).upper()
 
 
