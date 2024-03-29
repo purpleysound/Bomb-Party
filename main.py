@@ -347,11 +347,11 @@ class Bomb(pygame.sprite.Sprite):
         self.letter_rect = self.letters.get_rect(center=(77, 165))
 
 
-def get_random_syallable(min_words=0, letters=2, banned_words=list()):
+def get_random_syallable(min_words=0, letters=2, banned_clusters=list()):
     potential_syllables = list(filter(lambda x: WORDS_PER_2_LETTERS[x] >= min_words, LETTER_PAIRS))
     if letters == 3:
         potential_syllables += list(filter(lambda x: WORDS_PER_3_LETTERS[x] >= min_words, LETTER_TRIPLETS))
-    potential_syllables = list(filter(lambda x: x not in banned_words, potential_syllables))
+    potential_syllables = list(filter(lambda x: banned_clusters not in x, potential_syllables))
     return random.choice(potential_syllables).upper()
 
 
