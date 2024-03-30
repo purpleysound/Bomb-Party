@@ -351,7 +351,7 @@ def get_random_syallable(min_words=0, letters=2, banned_clusters=list()):
     potential_syllables = list(filter(lambda x: WORDS_PER_2_LETTERS[x] >= min_words, LETTER_PAIRS))
     if letters == 3:
         potential_syllables += list(filter(lambda x: WORDS_PER_3_LETTERS[x] >= min_words, LETTER_TRIPLETS))
-    potential_syllables = list(filter(lambda x: banned_clusters not in x, potential_syllables))
+    potential_syllables = list(filter(lambda x: all(cluster not in x for cluster in banned_clusters), potential_syllables))
     return random.choice(potential_syllables).upper()
 
 
