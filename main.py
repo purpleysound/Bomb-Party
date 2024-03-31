@@ -250,9 +250,9 @@ class LeaderboardScene(Scene):
         self.title = FONT.render("Leaderboard", True, (TEXT_COLOUR))
         self.title_rect = self.title.get_rect(center=(400, 50))
         self.words = FONT.render("Words", True, (TEXT_COLOUR))
-        self.words_rect = self.words.get_rect(center=(250, 150))
+        self.words_rect = self.words.get_rect(center=(200, 150))
         self.letters = FONT.render("Letters", True, (TEXT_COLOUR))
-        self.letters_rect = self.letters.get_rect(center=(550, 150))
+        self.letters_rect = self.letters.get_rect(center=(600, 150))
         self.retry = FONT.render("Press Enter to retry", True, (TEXT_COLOUR))
         self.retry_rect = self.retry.get_rect(center=(400, 550))
         self.high_score = return_values["high_score"]
@@ -286,7 +286,7 @@ class LeaderboardScene(Scene):
                 else:
                     colour = TEXT_COLOUR
                 row_text = FONT.render(f"{str(j+1)+'.'} {name}: {score}", True, (colour))
-                row_rect = row_text.get_rect(center=(250 + 300*i, 200 + j * 50))
+                row_rect = row_text.get_rect(center=(200 + 400*i, 200 + j * 50))
                 screen.blit(row_text, row_rect)
 
         if self.high_score:
@@ -302,7 +302,7 @@ class LeaderboardScene(Scene):
                     place = j+1
                     break
             row_text = FONT.render(f"{place}. {name}: {score}", True, (BLUE))
-            row_rect = row_text.get_rect(center=(250 + 300*i, 475))
+            row_rect = row_text.get_rect(center=(200 + 400*i, 475))
             screen.blit(row_text, row_rect)
 
         screen.blit(self.retry, self.retry_rect)
