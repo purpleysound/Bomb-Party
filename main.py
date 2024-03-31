@@ -276,20 +276,34 @@ class LeaderboardScene(Scene):
         screen.blit(self.words, self.words_rect)
         screen.blit(self.letters, self.letters_rect)
 
+        in_top_5 = [False, False]
+
         for i, leaderboard in enumerate((self.leaderboard["words"], self.leaderboard["letters"])):
             for j, (name, score) in list(enumerate(leaderboard.items()))[:5]:
                 if name == self.username:
                     colour = BLUE
+                    in_top_5[i] = True
                 else:
                     colour = TEXT_COLOUR
-                row_text = FONT.render(f"{name}: {score}", True, (colour))
+                row_text = FONT.render(f"{str(j+1)+'.'} {name}: {score}", True, (colour))
                 row_rect = row_text.get_rect(center=(250 + 300*i, 200 + j * 50))
                 screen.blit(row_text, row_rect)
 
         if self.high_score:
             high_score_text = FONT.render("New High Score!", True, (TEXT_COLOUR))
-            high_score_rect = high_score_text.get_rect(center=(400, 450))
+            high_score_rect = high_score_text.get_rect(center=(400, 100))
             screen.blit(high_score_text, high_score_rect)
+
+        for i, boolean in enumerate(in_top_5):
+            if boolean:
+                continue
+            for j, (name, score) in enumerate(self.leaderboard[("words", "letters")[i]].items()):
+                if name == self.username:
+                    place = j+1
+                    break
+            row_text = FONT.render(f"{place}. {name}: {score}", True, (BLUE))
+            row_rect = row_text.get_rect(center=(250 + 300*i, 475))
+            screen.blit(row_text, row_rect)
 
         screen.blit(self.retry, self.retry_rect)
         pygame.display.flip()
@@ -351,7 +365,7 @@ def get_random_syallable(min_words=0, letters=2, banned_clusters=list()):
     potential_syllables = list(filter(lambda x: WORDS_PER_2_LETTERS[x] >= min_words, LETTER_PAIRS))
     if letters == 3:
         potential_syllables += list(filter(lambda x: WORDS_PER_3_LETTERS[x] >= min_words, LETTER_TRIPLETS))
-    potential_syllables = list(filter(lambda x: all(cluster not in x for cluster in banned_clusters), potential_syllables))
+    potential_syllables = list(filter(lambda x: x.upper() not in banned_clusters, potential_syllables))
     return random.choice(potential_syllables).upper()
 
 
